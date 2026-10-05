@@ -5,3 +5,10 @@ responses/
 .env
 .env.*
 !.env.example
+
+state/
+.private/
+.pytest_cache/
+*.egg-info/
+*api-key.txt
+*dispatch-token.txt

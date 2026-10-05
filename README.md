@@ -1,3 +1,9 @@
+# Запуск обоих сборщиков в облаке
+
+Актуальная настройка GitHub Actions + cron-job.org описана в [CLOUD.md](CLOUD.md).
+Общий workflow: `Flights and theater collector`. Старый почасовой workflow ниже
+оставляйте отключённым, чтобы не дублировать сбор.
+
 # Vivaticket reconnaissance
 
 A small Python/Playwright script to observe where ticket data comes from. Chromium is visible by default. It monitors the whole browser context, including frames and new tabs, without automatically reserving or buying tickets.

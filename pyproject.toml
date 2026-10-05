@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rome-flightwatch"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["httpx>=0.28,<0.29", "playwright>=1.58,<2", "certifi>=2024.2.2"]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<10", "psycopg[binary]>=3.2,<4"]
+
+[project.scripts]
+flightwatch = "flightwatch.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["flightwatch*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

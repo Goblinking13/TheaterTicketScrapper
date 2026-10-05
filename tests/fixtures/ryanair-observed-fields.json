@@ -1,0 +1,87 @@
+{
+  "currency": "EUR",
+  "serverTimeUTC": "2026-10-04T20:04:18.385Z",
+  "trips": [
+    {
+      "origin": "VIE",
+      "destination": "FCO",
+      "dates": [
+        {
+          "dateOut": "2027-02-18T00:00:00.000",
+          "flights": [
+            {
+              "flightNumber": "FR 1645",
+              "timeUTC": [
+                "2027-02-18T05:10:00Z",
+                "2027-02-18T06:55:00Z"
+              ],
+              "segments": [
+                {
+                  "origin": "VIE",
+                  "destination": "FCO",
+                  "flightNumber": "FR 1645",
+                  "time": [
+                    "2027-02-18T06:10:00.000",
+                    "2027-02-18T07:55:00.000"
+                  ],
+                  "timeUTC": [
+                    "2027-02-18T05:10:00Z",
+                    "2027-02-18T06:55:00Z"
+                  ],
+                  "duration": "01:45",
+                  "segmentNr": 0
+                }
+              ],
+              "faresLeft": -1,
+              "operatedBy": "Lauda Europe",
+              "regularFare": {
+                "fares": [
+                  {
+                    "type": "ADT",
+                    "count": 1,
+                    "amount": 27.99
+                  }
+                ]
+              }
+            },
+            {
+              "flightNumber": "FR 7177",
+              "timeUTC": [
+                "2027-02-18T15:40:00Z",
+                "2027-02-18T17:25:00Z"
+              ],
+              "segments": [
+                {
+                  "origin": "VIE",
+                  "destination": "FCO",
+                  "flightNumber": "FR 7177",
+                  "time": [
+                    "2027-02-18T16:40:00.000",
+                    "2027-02-18T18:25:00.000"
+                  ],
+                  "timeUTC": [
+                    "2027-02-18T15:40:00Z",
+                    "2027-02-18T17:25:00Z"
+                  ],
+                  "duration": "01:45",
+                  "segmentNr": 0
+                }
+              ],
+              "faresLeft": 5,
+              "operatedBy": "Lauda Europe",
+              "regularFare": {
+                "fares": [
+                  {
+                    "type": "ADT",
+                    "count": 1,
+                    "amount": 43.89
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

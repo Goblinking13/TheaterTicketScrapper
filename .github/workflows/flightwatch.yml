@@ -1,0 +1,84 @@
+name: Flights and theater collector
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'tick = both schedules; test = one flight route; campaign = flights; deliver = flight queue'
+        type: choice
+        options: [tick, test, campaign, deliver]
+        default: tick
+      origin:
+        type: string
+        default: VIE
+      date:
+        type: string
+        default: '2027-02-18'
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: flightwatch-checkpoint
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      THEATER_SUPABASE_URL: ${{ secrets.THEATER_SUPABASE_URL }}
+      THEATER_SUPABASE_KEY: ${{ secrets.THEATER_SUPABASE_KEY }}
+      INITIAL_COLLECTOR_STATE: ${{ secrets.INITIAL_COLLECTOR_STATE }}
+      SKYSCANNER_API_KEY: ${{ secrets.SKYSCANNER_API_KEY }}
+      CAMPAIGN_START: ${{ vars.CAMPAIGN_START }}
+      PROVIDER: ${{ vars.PROVIDER || 'ryanair' }}
+      GH_TOKEN: ${{ github.token }}
+      MODE: ${{ inputs.mode || 'tick' }}
+      TEST_ORIGIN: ${{ inputs.origin || 'VIE' }}
+      TEST_DATE: ${{ inputs.date || '2027-02-18' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Install ordinary Chromium for Ryanair searches
+        if: ${{ env.MODE == 'tick' || (env.PROVIDER == 'ryanair' && env.MODE != 'deliver') }}
+        run: python -m playwright install --with-deps chromium
+      - name: Restore durable pending queue and campaign ledger
+        id: restore
+        run: python -m flightwatch.checkpoints restore
+      - name: Retry pending snapshots before checking source readiness
+        if: ${{ env.MODE != 'deliver' }}
+        continue-on-error: true
+        run: python -m flightwatch.cli deliver
+      - name: Check readiness for unattended price collection
+        if: ${{ env.MODE != 'deliver' && env.MODE != 'tick' }}
+        run: |
+          if [ "$MODE" = "test" ]; then
+            python -m flightwatch.cli doctor --test
+          else
+            python -m flightwatch.cli doctor
+          fi
+      - name: Collect or retry delivery
+        run: |
+          case "$MODE" in
+            tick) python -m flightwatch.cloud_scheduler ;;
+            test) python -m flightwatch.cli run --test --origin "$TEST_ORIGIN" --date "$TEST_DATE" ;;
+            deliver) python -m flightwatch.cli deliver ;;
+            campaign) python -m flightwatch.cli run ;;
+            *) exit 2 ;;
+          esac
+      - name: Save full checkpoint, including failed deliveries
+        id: checkpoint
+        if: ${{ always() && steps.restore.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: flightwatch-state-${{ github.run_id }}-${{ github.run_attempt }}
+          path: state/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 9
+      - name: Keep newest and fallback checkpoints
+        if: ${{ always() && steps.checkpoint.outcome == 'success' }}
+        run: python -m flightwatch.checkpoints prune
