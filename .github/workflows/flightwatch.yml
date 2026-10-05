@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'tick = both schedules; test = one flight route; campaign = flights; deliver = flight queue'
+        description: 'tick = schedules; verify = fresh flight and theater; test = flight; campaign = flights; deliver = flight queue'
         type: choice
-        options: [tick, test, campaign, deliver]
+        options: [tick, verify, test, campaign, deliver]
         default: tick
       origin:
         type: string
@@ -43,7 +43,7 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
       - name: Install ordinary Chromium for Ryanair searches
-        if: ${{ env.MODE == 'tick' || (env.PROVIDER == 'ryanair' && env.MODE != 'deliver') }}
+        if: ${{ (env.MODE == 'tick' || env.MODE == 'verify') || (env.PROVIDER == 'ryanair' && env.MODE != 'deliver') }}
         run: python -m playwright install --with-deps chromium
       - name: Restore durable pending queue and campaign ledger
         id: restore
@@ -53,7 +53,7 @@ jobs:
         continue-on-error: true
         run: python -m flightwatch.cli deliver
       - name: Check readiness for unattended price collection
-        if: ${{ env.MODE != 'deliver' && env.MODE != 'tick' }}
+        if: ${{ env.MODE != 'deliver' && env.MODE != 'tick' && env.MODE != 'verify' }}
         run: |
           if [ "$MODE" = "test" ]; then
             python -m flightwatch.cli doctor --test
@@ -64,6 +64,7 @@ jobs:
         run: |
           case "$MODE" in
             tick) python -m flightwatch.cloud_scheduler ;;
+            verify) python -m flightwatch.cloud_scheduler --verify ;;
             test) python -m flightwatch.cli run --test --origin "$TEST_ORIGIN" --date "$TEST_DATE" ;;
             deliver) python -m flightwatch.cli deliver ;;
             campaign) python -m flightwatch.cli run ;;

@@ -43,7 +43,7 @@ python scripts/configure-cron.py \
 
 По умолчанию задание отключено. Повтор команды обновляет то же задание.
 Сначала выполните **Actions → Flights and theater collector → Run workflow**,
-mode=`tick`. Проверьте журнал, artifact и запись Supabase. Затем остановите
+mode=`verify` (свежий тест VIE и театра). Проверьте журнал, artifact и запись Supabase. Затем остановите
 локальный LaunchAgent и повторите команду с `--enable`.
 Старый workflow `Vivaticket hourly sync` должен оставаться отключённым.
 

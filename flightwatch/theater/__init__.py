@@ -26,7 +26,7 @@ async def flush(pending, settings):
     return 0
 
 
-async def tick(state, *, now=None):
+async def tick(state, *, now=None, force=False):
     state = Path(state)
     pending = state / "pending"
     pending.mkdir(parents=True, exist_ok=True)
@@ -44,7 +44,7 @@ async def tick(state, *, now=None):
         latest = {"slot": slot, "captured_at": now.isoformat()}
         atomic_write(marker, json.dumps(latest))
     delivery_failed = await flush(pending, settings)
-    if latest.get("slot") != slot and not queued.exists():
+    if (force or latest.get("slot") != slot) and not queued.exists():
         # Stop collection if uploads remain unavailable for an extended period.
         if sum(p.stat().st_size for p in pending.glob('*.json')) >= 10_000_000:
             print("Theater: queue budget reached; retrying uploads only", flush=True)
