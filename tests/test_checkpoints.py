@@ -58,6 +58,22 @@ def test_prune_only_after_new_checkpoint(tmp_path,github_env):
         asyncio.run(checkpoint('prune',tmp_path,httpx.MockTransport(stale)))
 
 
+def test_prune_orders_by_creation_time_instead_of_artifact_id(tmp_path, github_env):
+    deleted = []
+    artifacts = [
+        dict(artifact(100, 'flightwatch-state-54-1'), created_at='2026-10-05T10:00:00Z'),
+        dict(artifact(90, 'flightwatch-state-55-1'), created_at='2026-10-05T11:00:00Z'),
+        dict(artifact(110, 'flightwatch-state-53-1'), created_at='2026-10-05T09:00:00Z'),
+    ]
+    def handler(request):
+        if request.method == 'DELETE':
+            deleted.append(request.url.path)
+            return httpx.Response(204)
+        return httpx.Response(200, json={'artifacts': artifacts})
+    asyncio.run(checkpoint('prune', tmp_path, httpx.MockTransport(handler)))
+    assert len(deleted) == 1 and deleted[0].endswith('/110')
+
+
 def test_first_run_checkpoint_survives_setup_failure(tmp_path,github_env):
     def handler(request):
         if '/workflows/' in request.url.path:

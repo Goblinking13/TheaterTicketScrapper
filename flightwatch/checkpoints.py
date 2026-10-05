@@ -32,7 +32,9 @@ async def checkpoint(command, root, transport=None):
             if len(data["artifacts"]) < 100:
                 break
             page += 1
-        artifacts.sort(key=lambda a: a["id"], reverse=True)
+        # Artifact IDs are allocated independently and need not increase with
+        # creation time. Use GitHub's timestamp to recover the newest state.
+        artifacts.sort(key=lambda a: (a.get("created_at", ""), a["id"]), reverse=True)
         if command == "restore":
             if not artifacts:
                 runs = await get("/actions/workflows/flightwatch.yml/runs?per_page=100")
