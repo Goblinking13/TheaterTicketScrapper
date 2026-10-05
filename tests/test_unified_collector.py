@@ -54,6 +54,18 @@ def test_theater_recovers_enqueue_before_marker_crash(tmp_path):
         upload.assert_called_once()
 
 
+def test_manual_verification_collects_fresh_data_in_same_hour(tmp_path):
+    now = aware('2026-10-04T10:10:00Z')
+    (tmp_path / 'latest.json').write_text(json.dumps({'slot': int(now.timestamp() // 3600)}))
+    with patch('flightwatch.theater.supabase_settings', return_value=('https://example.supabase.co', 'test')), \
+         patch('flightwatch.theater.investigate', new_callable=AsyncMock, return_value=tmp_path) as browser, \
+         patch('flightwatch.theater.extract_snapshot', return_value=SNAPSHOT), \
+         patch('flightwatch.theater.upload_snapshot') as upload:
+        assert asyncio.run(tick(tmp_path, now=now, force=True)) == 0
+        browser.assert_awaited_once()
+        upload.assert_called_once()
+
+
 def test_source_failure_does_not_prevent_other_collector(cfg, tmp_path):
     with patch('flightwatch.local_scheduler.tick', new_callable=AsyncMock, side_effect=ValueError('offline')), \
          patch('flightwatch.local_scheduler.theater_tick', new_callable=AsyncMock, return_value=0) as theater:

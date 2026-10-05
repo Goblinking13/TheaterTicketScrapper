@@ -1,9 +1,9 @@
-import json
+import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from flightwatch.cloud_scheduler import main
+from flightwatch.cloud_scheduler import main, verify
 
 
 def test_cloud_requires_fixed_campaign_start(monkeypatch):
@@ -21,3 +21,12 @@ def test_cloud_runs_both_collectors(monkeypatch):
             main()
     assert result.value.code == 0
     assert collect.await_args.args[1] == 'state'
+
+
+def test_cloud_verification_runs_both_sources_even_on_failure():
+    with patch('flightwatch.cloud_scheduler.run', new_callable=AsyncMock,
+               side_effect=RuntimeError('offline')), \
+         patch('flightwatch.cloud_scheduler.theater_tick', new_callable=AsyncMock,
+               return_value=0) as theater:
+        assert asyncio.run(verify({})) == 1
+        theater.assert_awaited_once_with('state/theater', force=True)
