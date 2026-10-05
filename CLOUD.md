@@ -61,3 +61,21 @@ mode=`verify` (свежий тест VIE и театра). Проверьте ж
 
 Документация: [workflow dispatch](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event),
 [cron-job.org API](https://docs.cron-job.org/rest-api.html).
+
+## Проверенный перенос 5 октября 2026
+
+Дата начала кампании сохранена: `2026-10-04T20:54:58.719948+00:00`.
+[Проверочный облачный запуск](https://github.com/Goblinking13/TheaterTicketScrapper/actions/runs/37302333641)
+получил 2 предложения VIE на 18 февраля 2027 и театральный снимок с 302
+доступными местами; загрузка в Supabase и сохранение checkpoint успешны.
+Задание cron-job.org: `8583162`. Локальная служба `com.flightwatch.local`
+остановлена, автозапуск отключён через `launchctl disable`.
+
+Для обратного переключения сначала отключите задание cron-job.org, доставьте
+облачные pending-снимки и перенесите последний checkpoint в рабочий локальный
+`state/`. Затем включите и загрузите службу:
+
+```sh
+launchctl enable "gui/$(id -u)/com.flightwatch.local"
+launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.flightwatch.local.plist"
+```
